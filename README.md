@@ -37,7 +37,7 @@ func main() {
 		},
 	}
 
-	storage, err := osinredis.New(pool, "prefix")
+	storage := osinredis.New(pool, "prefix")
 	server := osin.NewServer(osin.NewServerConfig(), storage)
 }
 ```
