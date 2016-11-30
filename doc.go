@@ -8,8 +8,8 @@ Installation:
 Usage:
 
 	import (
-	    "github.com/RangelReale/osin"
-	    "github.com/ShaleApps/osinredis"
+			"github.com/RangelReale/osin"
+			"github.com/ShaleApps/osinredis"
 			"github.com/garyburd/redigo/redis"
 	)
 
