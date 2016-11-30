@@ -163,25 +163,25 @@ func (s *Storage) SaveAccess(data *osin.AccessData) (err error) {
 
 // LoadAccess gets access data with given access token
 func (s *Storage) LoadAccess(token string) (*osin.AccessData, error) {
-	return s.loadAndRefreshAccess(s.makeKey("access_token", token))
+	return s.loadAccessByKey(s.makeKey("access_token", token))
 }
 
 // RemoveAccess deletes AccessData with given access token
 func (s *Storage) RemoveAccess(token string) error {
-	return s.removeAccessImpl(s.makeKey("access_token", token))
+	return s.removeAccessByKey(s.makeKey("access_token", token))
 }
 
 // LoadRefresh gets access data with given refresh token
 func (s *Storage) LoadRefresh(token string) (*osin.AccessData, error) {
-	return s.loadAndRefreshAccess(s.makeKey("refresh_token", token))
+	return s.loadAccessByKey(s.makeKey("refresh_token", token))
 }
 
 // RemoveRefresh deletes AccessData with given refresh token
 func (s *Storage) RemoveRefresh(token string) error {
-	return s.removeAccessImpl(s.makeKey("refresh_token", token))
+	return s.removeAccessByKey(s.makeKey("refresh_token", token))
 }
 
-func (s *Storage) removeAccessImpl(key string) error {
+func (s *Storage) removeAccessByKey(key string) error {
 	conn := s.pool.Get()
 	defer conn.Close()
 
@@ -190,7 +190,7 @@ func (s *Storage) removeAccessImpl(key string) error {
 		return errors.Wrapf(err, "failed to get access for %s", key)
 	}
 
-	access, err := s.loadAccessImpl(conn, key)
+	access, err := s.loadAccessByKey(key)
 	if err != nil {
 		return errors.Wrap(err, "unable to load access for removal")
 	}
@@ -210,20 +210,10 @@ func (s *Storage) removeAccessImpl(key string) error {
 	return errors.Wrapf(err, "failed to deregister refresh_token for %s", refreshTokenKey)
 }
 
-func (s *Storage) loadAndRefreshAccess(key string) (*osin.AccessData, error) {
+func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
 	conn := s.pool.Get()
 	defer conn.Close()
 
-	access, err := s.loadAccessImpl(conn, key)
-	if err != nil {
-		return nil, errors.Wrapf(err, "failed to load access for %s", key)
-	}
-
-	return s.refreshAccessClients(conn, access)
-}
-
-// LoadAccess gets access data with given access token
-func (s *Storage) loadAccessImpl(conn redis.Conn, key string) (*osin.AccessData, error) {
 	accessID, err := redis.String(conn.Do("GET", key))
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to get access ID for key %s", key)
@@ -236,12 +226,10 @@ func (s *Storage) loadAccessImpl(conn redis.Conn, key string) (*osin.AccessData,
 	}
 
 	var access osin.AccessData
-	err = decode(accessGob, &access)
-	return &access, errors.Wrap(err, "failed to decode access gob")
-}
+	if err := decode(accessGob, &access); err != nil {
+		return nil, errors.Wrap(err, "failed to decode access gob")
+	}
 
-func (s *Storage) refreshAccessClients(conn redis.Conn, access *osin.AccessData) (*osin.AccessData, error) {
-	var err error
 	access.Client, err = s.GetClient(access.Client.GetId())
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get client for access")
@@ -254,7 +242,7 @@ func (s *Storage) refreshAccessClients(conn redis.Conn, access *osin.AccessData)
 		}
 	}
 
-	return access, nil
+	return &access, nil
 }
 
 func (s *Storage) makeKey(namespace, id string) string {
