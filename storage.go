@@ -41,9 +41,7 @@ func (s *Storage) Clone() osin.Storage {
 }
 
 // Close the resources the Storage potentially holds (using Clone for example)
-func (s *Storage) Close() {
-	s.pool.Close()
-}
+func (s *Storage) Close() {}
 
 // CreateClient inserts a new client
 func (s *Storage) CreateClient(client osin.Client) error {
