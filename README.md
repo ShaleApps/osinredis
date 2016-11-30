@@ -2,6 +2,8 @@
 
 Provides Redis-based storage for [osin](https://github.com/RangelReale/osin) and is based on [redigo](https://github.com/garyburd/redigo).
 
+[![GoDoc](https://godoc.org/github.com/ShaleApps/osinredis?status.svg)](https://godoc.org/github.com/ShaleApps/osinredis)
+
 ### Installation
 
 ```
