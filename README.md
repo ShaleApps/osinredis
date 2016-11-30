@@ -1,11 +1,11 @@
-## Redis storage for osin OAuth server library
+## Redis storage for osin
 
 Provides Redis-based storage for [osin](https://github.com/RangelReale/osin) and is based on [redigo](https://github.com/garyburd/redigo).
 
 ### Installation
 
 ```
-$ go get github.com/ShaleApps/redis
+$ go get github.com/ShaleApps/osinredis
 ```
 
 ### Running tests
@@ -22,7 +22,7 @@ Example:
 ```go
 import (
     "github.com/RangelReale/osin"
-    "github.com/ShaleApps/osin-redis"
+    "github.com/ShaleApps/osinredis"
 	"github.com/garyburd/redigo/redis"
 )
 
