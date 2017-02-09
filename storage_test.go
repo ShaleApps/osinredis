@@ -136,7 +136,7 @@ func TestLoadAuthorizeNonExistent(t *testing.T) {
 	storage := initTestStorage()
 	loadData, err := storage.LoadAuthorize("nonExistentCode")
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestLoadAuthorize(t *testing.T) {
@@ -176,7 +176,7 @@ func TestRemoveAuthorize(t *testing.T) {
 
 	loadData, err := storage.LoadAuthorize(authorizeData.Code)
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestSaveAccess(t *testing.T) {
@@ -201,7 +201,7 @@ func TestLoadAccessNonExistent(t *testing.T) {
 
 	loadData, err := storage.LoadAccess("nonExistentToken")
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestLoadAccess(t *testing.T) {
@@ -219,8 +219,8 @@ func TestLoadAccess(t *testing.T) {
 	assert.NoError(t, storage.SaveAccess(accessData))
 
 	loadData, err := storage.LoadAccess(accessData.AccessToken)
+	assert.Equal(t, loadData, accessData)
 	assert.NoError(t, err)
-	assert.True(t, reflect.DeepEqual(loadData, accessData))
 }
 
 func TestRemoveAccessNonExistent(t *testing.T) {
@@ -249,7 +249,7 @@ func TestRemoveAccess(t *testing.T) {
 
 	loadData, err := storage.LoadAccess(accessData.AccessToken)
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestLoadRefreshNonExistent(t *testing.T) {
@@ -259,7 +259,7 @@ func TestLoadRefreshNonExistent(t *testing.T) {
 
 	loadData, err := storage.LoadRefresh("nonExistentToken")
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
 
 func TestLoadRefresh(t *testing.T) {
@@ -278,7 +278,7 @@ func TestLoadRefresh(t *testing.T) {
 
 	loadData, err := storage.LoadRefresh(accessData.RefreshToken)
 	assert.NoError(t, err)
-	assert.True(t, reflect.DeepEqual(loadData, accessData))
+	assert.Equal(t, loadData, accessData)
 }
 
 func TestRemoveRefreshNonExistent(t *testing.T) {
@@ -309,5 +309,5 @@ func TestRemoveRefresh(t *testing.T) {
 
 	loadData, err := storage.LoadRefresh(accessData.RefreshToken)
 	assert.Nil(t, loadData)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }

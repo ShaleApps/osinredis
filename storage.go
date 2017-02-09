@@ -116,7 +116,7 @@ func (s *Storage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 		return nil, errors.Wrap(err, "unable to GET auth")
 	}
 	if rawAuthGob == nil {
-		return nil, errors.New("token is expired")
+		return nil, nil
 	}
 
 	authGob, _ := redis.Bytes(rawAuthGob, err)
@@ -147,15 +147,15 @@ func (s *Storage) SaveAccess(data *osin.AccessData) (err error) {
 
 	accessID := uuid.NewV4().String()
 
-	if _, err := conn.Do("SET", s.makeKey("access", accessID), string(payload)); err != nil {
+	if _, err := conn.Do("SETEX", s.makeKey("access", accessID), data.ExpiresIn, string(payload)); err != nil {
 		return errors.Wrap(err, "failed to save access")
 	}
 
-	if _, err := conn.Do("SET", s.makeKey("access_token", data.AccessToken), accessID); err != nil {
+	if _, err := conn.Do("SETEX", s.makeKey("access_token", data.AccessToken), data.ExpiresIn, accessID); err != nil {
 		return errors.Wrap(err, "failed to register access token")
 	}
 
-	_, err = conn.Do("SET", s.makeKey("refresh_token", data.RefreshToken), accessID)
+	_, err = conn.Do("SETEX", s.makeKey("refresh_token", data.RefreshToken), data.ExpiresIn, accessID)
 	return errors.Wrap(err, "failed to register refresh token")
 }
 
@@ -185,7 +185,7 @@ func (s *Storage) removeAccessByKey(key string) error {
 
 	accessID, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		return errors.Wrapf(err, "failed to get access for %s", key)
+		return errors.Wrapf(err, "failed to get access")
 	}
 
 	access, err := s.loadAccessByKey(key)
@@ -193,34 +193,50 @@ func (s *Storage) removeAccessByKey(key string) error {
 		return errors.Wrap(err, "unable to load access for removal")
 	}
 
+	if access == nil {
+		return nil
+	}
+
 	accessKey := s.makeKey("access", accessID)
 	if _, err := conn.Do("DEL", accessKey); err != nil {
-		return errors.Wrapf(err, "failed to delete access for %s", accessKey)
+		return errors.Wrapf(err, "failed to delete access")
 	}
 
 	accessTokenKey := s.makeKey("access_token", access.AccessToken)
 	if _, err := conn.Do("DEL", accessTokenKey); err != nil {
-		return errors.Wrapf(err, "failed to deregister access_token for %s", accessTokenKey)
+		return errors.Wrapf(err, "failed to deregister access_token")
 	}
 
 	refreshTokenKey := s.makeKey("refresh_token", access.RefreshToken)
 	_, err = conn.Do("DEL", refreshTokenKey)
-	return errors.Wrapf(err, "failed to deregister refresh_token for %s", refreshTokenKey)
+	return errors.Wrapf(err, "failed to deregister refresh_token")
 }
 
 func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
 	conn := s.pool.Get()
 	defer conn.Close()
 
+	var (
+		rawAuthGob interface{}
+		err        error
+	)
+
+	if rawAuthGob, err = conn.Do("GET", key); err != nil {
+		return nil, errors.Wrap(err, "unable to GET auth")
+	}
+	if rawAuthGob == nil {
+		return nil, nil
+	}
+
 	accessID, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get access ID for key %s", key)
+		return nil, errors.Wrapf(err, "unable to get access ID")
 	}
 
 	accessIDKey := s.makeKey("access", accessID)
 	accessGob, err := redis.Bytes(conn.Do("GET", accessIDKey))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get access gob for key %s", accessIDKey)
+		return nil, errors.Wrapf(err, "unable to get access gob")
 	}
 
 	var access osin.AccessData
