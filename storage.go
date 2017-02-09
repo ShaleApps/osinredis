@@ -185,7 +185,7 @@ func (s *Storage) removeAccessByKey(key string) error {
 
 	accessID, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		return errors.Wrapf(err, "failed to get access")
+		return errors.Wrap(err, "failed to get access")
 	}
 
 	access, err := s.loadAccessByKey(key)
@@ -199,17 +199,17 @@ func (s *Storage) removeAccessByKey(key string) error {
 
 	accessKey := s.makeKey("access", accessID)
 	if _, err := conn.Do("DEL", accessKey); err != nil {
-		return errors.Wrapf(err, "failed to delete access")
+		return errors.Wrap(err, "failed to delete access")
 	}
 
 	accessTokenKey := s.makeKey("access_token", access.AccessToken)
 	if _, err := conn.Do("DEL", accessTokenKey); err != nil {
-		return errors.Wrapf(err, "failed to deregister access_token")
+		return errors.Wrap(err, "failed to deregister access_token")
 	}
 
 	refreshTokenKey := s.makeKey("refresh_token", access.RefreshToken)
 	_, err = conn.Do("DEL", refreshTokenKey)
-	return errors.Wrapf(err, "failed to deregister refresh_token")
+	return errors.Wrap(err, "failed to deregister refresh_token")
 }
 
 func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
@@ -230,19 +230,26 @@ func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
 
 	accessID, err := redis.String(conn.Do("GET", key))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get access ID")
+		return nil, errors.Wrap(err, "unable to get access ID")
 	}
 
 	accessIDKey := s.makeKey("access", accessID)
 	accessGob, err := redis.Bytes(conn.Do("GET", accessIDKey))
 	if err != nil {
-		return nil, errors.Wrapf(err, "unable to get access gob")
+		return nil, errors.Wrap(err, "unable to get access gob")
 	}
 
 	var access osin.AccessData
 	if err := decode(accessGob, &access); err != nil {
 		return nil, errors.Wrap(err, "failed to decode access gob")
 	}
+
+	ttl, err := redis.Int(conn.Do("TTL", accessIDKey))
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get access TTL")
+	}
+
+	access.ExpiresIn = int32(ttl)
 
 	access.Client, err = s.GetClient(access.Client.GetId())
 	if err != nil {

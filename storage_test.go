@@ -218,7 +218,12 @@ func TestLoadAccess(t *testing.T) {
 	accessData := newAccessData(authorizeData)
 	assert.NoError(t, storage.SaveAccess(accessData))
 
+	time.Sleep(1 * time.Second)
+
 	loadData, err := storage.LoadAccess(accessData.AccessToken)
+	assert.NotEqual(t, loadData.ExpiresIn, accessData.ExpiresIn)
+
+	loadData.ExpiresIn = accessData.ExpiresIn
 	assert.Equal(t, loadData, accessData)
 	assert.NoError(t, err)
 }
