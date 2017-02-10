@@ -89,6 +89,16 @@ func TestGetClient(t *testing.T) {
 	assert.Equal(t, client, clientFound)
 }
 
+func TestGetClientNotFound(t *testing.T) {
+	flushAll()
+
+	storage := initTestStorage()
+
+	clientFound, err := storage.GetClient("notthere")
+	assert.NoError(t, err)
+	assert.Nil(t, clientFound)
+}
+
 func TestUpdateClient(t *testing.T) {
 	flushAll()
 
