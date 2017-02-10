@@ -62,10 +62,19 @@ func (s *Storage) GetClient(id string) (osin.Client, error) {
 	conn := s.pool.Get()
 	defer conn.Close()
 
-	clientGob, err := redis.Bytes(conn.Do("GET", s.makeKey("client", id)))
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get client gob")
+	var (
+		rawClientGob interface{}
+		err          error
+	)
+
+	if rawClientGob, err = conn.Do("GET", s.makeKey("client", id)); err != nil {
+		return nil, errors.Wrap(err, "unable to GET client")
 	}
+	if rawClientGob == nil {
+		return nil, nil
+	}
+
+	clientGob, _ := redis.Bytes(rawClientGob, err)
 
 	var client osin.DefaultClient
 	err = decode(clientGob, &client)
