@@ -46,6 +46,10 @@ func (s *Storage) Close() {}
 // CreateClient inserts a new client
 func (s *Storage) CreateClient(client osin.Client) error {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	payload, err := encode(client)
@@ -60,6 +64,10 @@ func (s *Storage) CreateClient(client osin.Client) error {
 // GetClient gets a client by ID
 func (s *Storage) GetClient(id string) (osin.Client, error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return nil, err
+	}
+
 	defer conn.Close()
 
 	var (
@@ -89,6 +97,10 @@ func (s *Storage) UpdateClient(client osin.Client) error {
 // DeleteClient deletes given client
 func (s *Storage) DeleteClient(client osin.Client) error {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	_, err := conn.Do("DEL", s.makeKey("client", client.GetId()))
@@ -98,6 +110,10 @@ func (s *Storage) DeleteClient(client osin.Client) error {
 // SaveAuthorize saves authorize data.
 func (s *Storage) SaveAuthorize(data *osin.AuthorizeData) (err error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	payload, err := encode(data)
@@ -114,6 +130,10 @@ func (s *Storage) SaveAuthorize(data *osin.AuthorizeData) (err error) {
 // Optionally can return error if expired.
 func (s *Storage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return nil, err
+	}
+
 	defer conn.Close()
 
 	var (
@@ -138,6 +158,10 @@ func (s *Storage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 // RemoveAuthorize revokes or deletes the authorization code.
 func (s *Storage) RemoveAuthorize(code string) (err error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	_, err = conn.Do("DEL", s.makeKey("auth", code))
@@ -147,6 +171,10 @@ func (s *Storage) RemoveAuthorize(code string) (err error) {
 // SaveAccess creates AccessData.
 func (s *Storage) SaveAccess(data *osin.AccessData) (err error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	payload, err := encode(data)
@@ -190,6 +218,10 @@ func (s *Storage) RemoveRefresh(token string) error {
 
 func (s *Storage) removeAccessByKey(key string) error {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
 	defer conn.Close()
 
 	accessID, err := redis.String(conn.Do("GET", key))
@@ -223,6 +255,10 @@ func (s *Storage) removeAccessByKey(key string) error {
 
 func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
 	conn := s.pool.Get()
+	if err := conn.Err(); err != nil {
+		return nil, err
+	}
+
 	defer conn.Close()
 
 	var (
