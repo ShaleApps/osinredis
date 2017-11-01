@@ -79,7 +79,7 @@ func (s *Storage) GetClient(id string) (osin.Client, error) {
 		return nil, errors.Wrap(err, "unable to GET client")
 	}
 	if rawClientGob == nil {
-		return nil, nil
+		return nil, errors.Wrap(osin.ErrNotFound, "unable to GET client")
 	}
 
 	clientGob, _ := redis.Bytes(rawClientGob, err)
@@ -145,7 +145,7 @@ func (s *Storage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 		return nil, errors.Wrap(err, "unable to GET auth")
 	}
 	if rawAuthGob == nil {
-		return nil, nil
+		return nil, errors.Wrap(osin.ErrNotFound, "unable to GET auth")
 	}
 
 	authGob, _ := redis.Bytes(rawAuthGob, err)
@@ -270,7 +270,7 @@ func (s *Storage) loadAccessByKey(key string) (*osin.AccessData, error) {
 		return nil, errors.Wrap(err, "unable to GET auth")
 	}
 	if rawAuthGob == nil {
-		return nil, nil
+		return nil, errors.Wrap(osin.ErrNotFound, "unable to GET auth")
 	}
 
 	accessID, err := redis.String(conn.Do("GET", key))
