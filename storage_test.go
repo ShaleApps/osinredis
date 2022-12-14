@@ -2,12 +2,11 @@ package osinredis
 
 import (
 	"os"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/RangelReale/osin"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
+	"github.com/openshift/osin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -67,6 +66,40 @@ func newAccessData(authorizeData *osin.AuthorizeData) *osin.AccessData {
 		ExpiresIn:     3600,
 		CreatedAt:     time.Now(),
 	}
+}
+
+func isEqualAuthorizeData(s1, s2 interface{}) bool {
+	if _, ok := s1.(*osin.AuthorizeData); ok {
+		if _, ok := s2.(*osin.AuthorizeData); ok {
+			if s1.(*osin.AuthorizeData).RedirectUri == s2.(*osin.AuthorizeData).RedirectUri {
+				if s1.(*osin.AuthorizeData).ExpiresIn == s2.(*osin.AuthorizeData).ExpiresIn {
+					return s1.(*osin.AuthorizeData).Code == s2.(*osin.AuthorizeData).Code
+				} else {
+					return false
+				}
+			}
+			return false
+		}
+		return false
+	}
+	return false
+}
+
+func isEqualAccessData(s1, s2 interface{}) bool {
+	if _, ok := s1.(*osin.AccessData); ok {
+		if _, ok := s2.(*osin.AccessData); ok {
+			if s1.(*osin.AccessData).AccessToken == s2.(*osin.AccessData).AccessToken {
+				if s1.(*osin.AccessData).RefreshToken == s2.(*osin.AccessData).RefreshToken {
+					return s1.(*osin.AccessData).ExpiresIn == s2.(*osin.AccessData).ExpiresIn
+				} else {
+					return false
+				}
+			}
+			return false
+		}
+		return false
+	}
+	return false
 }
 
 func TestCreateClient(t *testing.T) {
@@ -162,7 +195,7 @@ func TestLoadAuthorize(t *testing.T) {
 
 	loadData, err := storage.LoadAuthorize(authorizeData.Code)
 	assert.NoError(t, err)
-	assert.True(t, reflect.DeepEqual(loadData, authorizeData))
+	assert.True(t, isEqualAuthorizeData(loadData, authorizeData))
 }
 
 func TestRemoveAuthorizeNonExistent(t *testing.T) {
@@ -234,7 +267,7 @@ func TestLoadAccess(t *testing.T) {
 	assert.NotEqual(t, loadData.ExpiresIn, accessData.ExpiresIn)
 
 	loadData.ExpiresIn = accessData.ExpiresIn
-	assert.Equal(t, loadData, accessData)
+	assert.True(t, isEqualAccessData(loadData, accessData))
 	assert.NoError(t, err)
 }
 
@@ -293,7 +326,7 @@ func TestLoadRefresh(t *testing.T) {
 
 	loadData, err := storage.LoadRefresh(accessData.RefreshToken)
 	assert.NoError(t, err)
-	assert.Equal(t, loadData, accessData)
+	assert.True(t, isEqualAccessData(loadData, accessData))
 }
 
 func TestRemoveRefreshNonExistent(t *testing.T) {

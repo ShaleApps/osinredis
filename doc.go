@@ -8,7 +8,7 @@ Installation:
 Usage:
 
 	import (
-		"github.com/RangelReale/osin"
+		"github.com/openshift/osin"
 		"github.com/ShaleApps/osinredis"
 		"github.com/garyburd/redigo/redis"
 	)
@@ -27,6 +27,5 @@ Usage:
 		storage := osinredis.New(pool, "prefix")
 		server := osin.NewServer(osin.NewServerConfig(), storage)
 	}
-
 */
 package osinredis

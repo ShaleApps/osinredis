@@ -1,6 +1,6 @@
 ## Redis storage for osin
 
-Provides Redis-based storage for [osin](https://github.com/RangelReale/osin) and is based on [redigo](https://github.com/garyburd/redigo).
+Provides Redis-based storage for [osin](https://github.com/openshift/osin) and is based on [redigo](https://github.com/gomodule/redigo).
 
 [![GoDoc](https://godoc.org/github.com/ShaleApps/osinredis?status.svg)](https://godoc.org/github.com/ShaleApps/osinredis)
 
@@ -23,9 +23,9 @@ Example:
 
 ```go
 import (
-    "github.com/RangelReale/osin"
-    "github.com/ShaleApps/osinredis"
-	"github.com/garyburd/redigo/redis"
+	"github.com/openshift/osin"
+	"github.com/ShaleApps/osinredis"
+	"github.com/gomodule/redigo/redis"
 )
 
 func main() {

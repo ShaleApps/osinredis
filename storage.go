@@ -5,8 +5,8 @@ import (
 	"encoding/gob"
 	"fmt"
 
-	"github.com/RangelReale/osin"
-	"github.com/garyburd/redigo/redis"
+	"github.com/gomodule/redigo/redis"
+	"github.com/openshift/osin"
 	"github.com/pkg/errors"
 	"github.com/satori/go.uuid"
 )
@@ -18,7 +18,7 @@ func init() {
 	gob.Register(osin.AccessData{})
 }
 
-// Storage implements "github.com/RangelReale/osin".Storage
+// Storage implements "github.com/openshift/osin".Storage
 type Storage struct {
 	pool      *redis.Pool
 	keyPrefix string
